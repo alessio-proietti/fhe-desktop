@@ -1,0 +1,40 @@
+FROM centos:8
+ENV container docker
+LABEL mantainer="Alessio Proietti <alessio.proietti@protonmail.com>"
+
+ARG USER_ID
+#CentOS 8 MS SEAL Docker Container Base
+
+USER root
+
+# Update OS and install toolchain
+RUN yum -y update && yum clean all
+RUN yum -y install epel-release && \
+    yum repolist
+RUN yum -y install autoconf xz curl wget tar git gcc gcc-c++ make diffutils file patchelf vim python3 python2 openssl-devel cmake && \
+    yum clean all
+
+# Install Bash Automated Testing System
+RUN git clone https://github.com/bats-core/bats-core.git && \
+    cd bats-core && \
+    ./install.sh /usr/local
+
+# Create dependencies build environment 
+RUN mkdir -p /opt/CC/FHE-desktop
+
+# Build MS SEAL
+COPY ./SEAL /opt/CC/FHE-desktop/SEAL
+WORKDIR /opt/CC/FHE-desktop/SEAL
+RUN mkdir build && \
+    cmake -S . -B build &&\
+    cmake --build build && \
+    sudo cmake --install build 
+
+# Create user fhe:fhe with no login
+RUN adduser --uid ${USER_ID}  --comment "fhe desktop user" fhe
+RUN usermod -L fhe
+
+WORKDIR /home/fhe
+USER fhe
+
+CMD ["/usr/bin/bash"]

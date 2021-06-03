@@ -1,0 +1,38 @@
+FROM centos:8
+ENV container docker
+LABEL mantainer="Alessio Proietti <alessio.proietti@protonmail.com>"
+
+ARG USER_ID
+#CentOS 8 MS SEAL Docker Container Base
+
+USER root
+
+# Update OS and install toolchain
+RUN yum -y update && yum clean all
+RUN yum -y install epel-release && \
+    yum repolist
+RUN yum -y install autoconf xz curl wget tar git gcc gcc-c++ make diffutils file patchelf vim python3 python2 openssl-devel cmake && \
+    yum clean all
+
+# Create dependencies build environment 
+RUN mkdir -p /opt/CC/FHE-desktop
+
+# Install Go Language
+WORKDIR /opt/CC/FHE-desktop/golang
+RUN wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go &&  tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz && \
+    export PATH=$PATH:/usr/local/go/bin && \
+    go version
+    
+
+# Create user fhe:fhe with no login
+RUN adduser --uid ${USER_ID}  --comment "fhe desktop user" fhe
+RUN usermod -L fhe
+
+WORKDIR /home/fhe
+USER fhe
+
+ENV PATH "$PATH:/usr/local/go/bin"
+RUN go version
+
+CMD ["/usr/bin/bash"]

@@ -1,0 +1,32 @@
+FROM centos:8
+ENV container docker
+LABEL mantainer="Alessio Proietti <alessio.proietti@protonmail.com>"
+
+ARG USER_ID
+#CentOS 8 MS SEAL Docker Container Base
+
+USER root
+
+# Update OS and install toolchain
+RUN yum -y update && yum clean all
+RUN yum -y install epel-release && \
+    yum repolist
+RUN yum -y install autoconf xz curl wget tar git gcc gcc-c++ make diffutils file patchelf vim python3 python2 fftw-devel openssl-devel cmake && \
+    yum clean all
+
+# Create dependencies build environment 
+RUN mkdir -p /opt/CC/FHE-desktop
+
+# Create user fhe:fhe with no login
+RUN adduser --uid ${USER_ID}  --comment "fhe desktop user" fhe
+RUN usermod -L fhe
+
+WORKDIR /home/fhe
+USER fhe
+
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN source $HOME/.cargo/env && \
+    rustup -V
+
+CMD ["/usr/bin/bash"]
