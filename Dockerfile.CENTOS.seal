@@ -28,7 +28,7 @@ WORKDIR /opt/CC/FHE-desktop/SEAL
 RUN mkdir build && \
     cmake -S . -B build &&\
     cmake --build build && \
-    sudo cmake --install build 
+    cmake --install build 
 
 # Create user fhe:fhe with no login
 RUN adduser --uid ${USER_ID}  --comment "fhe desktop user" fhe
